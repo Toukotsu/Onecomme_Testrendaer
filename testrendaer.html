@@ -78,12 +78,6 @@ document.getElementById("interval").addEventListener("input", e => {
   document.getElementById("intervalValue").textContent = e.target.value;
 });
 
-let selectedMode = "single";
-document.querySelector(".actionModeSelection").addEventListener("change", e => {
-  selectedMode = e.target.value;
-  // console.log(selectedMode);
-});
-
 let listIndex = 0;
 
 function sendOne() {
@@ -96,6 +90,7 @@ function sendOne() {
 
   let username = "";
   let comment = "";
+  const selectedMode = document.querySelector('input[name="actionMode"]:checked').value;
   switch (selectedMode) {
     case "list":
       username = usernames[listIndex % usernames.length];
