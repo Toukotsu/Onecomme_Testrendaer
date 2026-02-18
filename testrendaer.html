@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>わんコメ テストコメント連打er</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; }
+  .row { margin-top: 10px; }
+
+  .container { display: flex; column-gap: 20px; }
+  .block { display: flex; flex-direction: column; flex: 1; }
+  textarea { width: 100%; box-sizing: border-box; }
+
+  @media (max-width: 600px) {
+    .container {
+      flex-direction: column;
+    }
+  }
+</style>
+</head>
+<body>
+<h2>わんコメ テストコメント連打er</h2>
+
+<div class="container">
+  <div class="block">
+    <label for="username">ユーザ名：</label>
+    <textarea id="username" rows="5" cols="20" wrap="off" autocomplete="off">ずんだもん&NewLine;あんこもん&NewLine;かるだもん&NewLine;そーだもん</textarea>
+  </div>
+  <div class="block">
+    <label for="comments">コメント内容：</label>
+    <textarea id="comments" rows="5" cols="20" wrap="off" autocomplete="off">のだ&NewLine;なのだ&NewLine;ちがうのだ&NewLine;かもなのだ</textarea>
+  </div>
+</div>
+
+<div class="row">
+  <button id="sendSingle">単発送信</button>
+</div>
+
+<div class="row">
+  <div>
+  <label for="startstop">連続送信 </label>
+  <button id="startstop">Start</button>
+  <progress id="gauge" value="0.0" max="1">10</progress>
+  </div>
+  <div>
+  <label for="interval">送信間隔：</label>
+  <input id="interval" type="range" min="100" max="2000" value="1000" step="50">
+  <span id="intervalValue">1000</span> ms
+  </div>
+</div>
+
+<script>
+document.getElementById("interval").addEventListener("input", e => {
+  document.getElementById("intervalValue").textContent = e.target.value;
+});
+
+function getOneLine(text) {
+  const lines = text.split("\n").map(s=>s.trim()).filter(s=>s.length>0);
+  return lines[Math.floor(Math.random() * lines.length)];  // textが空だとわんコメ側で設定したデフォ値になるようだ
+}
+
+function sendOne() {
+  const username = getOneLine(document.getElementById("username").value);
+  const comment = getOneLine(document.getElementById("comments").value);
+
+  fetch("http://localhost:11180/api/comments/test", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+      "platform": "youtube",
+      "hasGift": false,
+      "unit": "",
+      "price": 0,
+      "giftType": "none",
+      "newComment": false,
+      "repeater": false,
+      "subscribe": false,
+      "speech": false,
+      "username": username,
+      "comment": comment
+    })
+  }).catch(err => console.error(err));
+}
+
+document.getElementById("sendSingle").addEventListener("click", () => {
+  sendOne();
+});
+
+document.getElementById("startstop").addEventListener("click", () => {
+  let newtext = "Stop"
+  if(running) {
+    resetProgress();
+    newtext="Start";
+  }
+  else {
+    // sendOne();
+    running = true;
+    requestAnimationFrame(sendloop);
+  }
+  document.getElementById("startstop").textContent=newtext;
+});
+
+let lastTime = 0;
+let running = false;
+let progress = 0.0;
+
+function updateGauge() {
+  document.getElementById("gauge").value = progress;
+}
+
+function resetProgress() {
+  lastTime = 0;
+  running = false;
+  progress = 0.0;
+  updateGauge();
+}
+
+function sendloop(timestamp) {
+  if(!running) return;
+  if(!lastTime) lastTime = timestamp;
+  const delta = timestamp - lastTime;
+  lastTime = timestamp;
+
+  const interval = Number(document.getElementById("interval").value);
+  progress += delta / interval;
+  updateGauge();
+  if(progress >= 1) {
+    progress = 0.0;
+    sendOne();
+  }
+  
+  requestAnimationFrame(sendloop);
+}
+</script>
+
+</body>
+</html>
