@@ -7,9 +7,10 @@
   body { font-family: sans-serif; padding: 20px; }
   .row { margin-top: 10px; }
 
-  .container { display: flex; column-gap: 20px; }
+  .container { max-width: 600px; margin: 0 auto; padding: 0 1rem; }
+  .datacontainer { display: flex; column-gap: 20px; }
   .block { display: flex; flex-direction: column; flex: 1; }
-  textarea { width: 100%; box-sizing: border-box; }
+  textarea { width: 100%; box-sizing: border-box; resize: vertical; }
 
   .actionModeSelection {
     span { margin-right: 5px; };
@@ -17,60 +18,61 @@
   }
 
   @media (max-width: 600px) {
-    .container {
+    .datacontainer {
       flex-direction: column;
     }
   }
 </style>
 </head>
 <body>
-<h2>わんコメ テストコメント連打er</h2>
-
 <div class="container">
-  <div class="block">
-    <label for="usernames">ユーザ名：</label>
-    <textarea id="usernames" rows="5" cols="20" wrap="off" autocomplete="off">ずんだもん&NewLine;あんこもん&NewLine;かるだもん&NewLine;そーだもん</textarea>
+  <h2>わんコメ テストコメント連打er</h2>
+
+  <div class="datacontainer">
+    <div class="block">
+      <label for="usernames">ユーザ名：</label>
+      <textarea id="usernames" rows="5" cols="20" wrap="off" autocomplete="off">ずんだもん&NewLine;あんこもん&NewLine;かるだもん&NewLine;そーだもん</textarea>
+    </div>
+    <div class="block">
+      <label for="comments">コメント内容：</label>
+      <textarea id="comments" rows="5" cols="20" wrap="off" autocomplete="off">のだ&NewLine;なのだ&NewLine;ちがうのだ&NewLine;かもなのだ</textarea>
+    </div>
   </div>
-  <div class="block">
-    <label for="comments">コメント内容：</label>
-    <textarea id="comments" rows="5" cols="20" wrap="off" autocomplete="off">のだ&NewLine;なのだ&NewLine;ちがうのだ&NewLine;かもなのだ</textarea>
+  <form>
+    <fieldset class="actionModeSelection">
+      <legend>動作モード</legend>
+      <span class="actionModeSelection">
+      <input type="radio" id="actionModeSingle" name="actionMode" value="single" checked />
+      <label for="actionModeSingle">先頭</label>
+      </span>
+      <span class="actionModeSelection">
+      <input type="radio" id="actionModeList" name="actionMode" value="list" />
+      <label for="actionModeList">リスト順</label>
+      </span>
+      <span class="actionModeSelection">
+      <input type="radio" id="actionModeRandom" name="actionMode" value="random" />
+      <label for="actionModeRandom">ランダム</label>
+      </span>
+    </fieldset>
+  </form>
+
+  <div class="row">
+    <button id="sendSingle">単発送信</button>
+  </div>
+
+  <div class="row">
+    <div>
+    <label for="startstop">連続送信 </label>
+    <button id="startstop">Start</button>
+    <progress id="gauge" value="0.0" max="1">10</progress>
+    </div>
+    <div>
+    <label for="interval">送信間隔：</label>
+    <input id="interval" type="range" min="100" max="2000" value="1000" step="50">
+    <span id="intervalValue">1000</span> ms
+    </div>
   </div>
 </div>
-<form>
-  <fieldset class="actionModeSelection">
-    <legend>動作モード</legend>
-    <span class="actionModeSelection">
-    <input type="radio" id="actionModeSingle" name="actionMode" value="single" checked />
-    <label for="actionModeSingle">先頭</label>
-    </span>
-    <span class="actionModeSelection">
-    <input type="radio" id="actionModeList" name="actionMode" value="list" />
-    <label for="actionModeList">リスト順</label>
-    </span>
-    <span class="actionModeSelection">
-    <input type="radio" id="actionModeRandom" name="actionMode" value="random" />
-    <label for="actionModeRandom">ランダム</label>
-    </span>
-  </fieldset>
-</form>
-
-<div class="row">
-  <button id="sendSingle">単発送信</button>
-</div>
-
-<div class="row">
-  <div>
-  <label for="startstop">連続送信 </label>
-  <button id="startstop">Start</button>
-  <progress id="gauge" value="0.0" max="1">10</progress>
-  </div>
-  <div>
-  <label for="interval">送信間隔：</label>
-  <input id="interval" type="range" min="100" max="2000" value="1000" step="50">
-  <span id="intervalValue">1000</span> ms
-  </div>
-</div>
-
 <script>
 document.getElementById("interval").addEventListener("input", e => {
   document.getElementById("intervalValue").textContent = e.target.value;
