@@ -31,18 +31,18 @@
   <div class="datacontainer">
     <div class="block">
       <label for="usernames">ユーザ名：</label>
-      <textarea id="usernames" rows="5" cols="20" wrap="off" autocomplete="off">ずんだもん&NewLine;あんこもん&NewLine;きなこもん&NewLine;そーだもん</textarea>
+      <textarea id="usernames" rows="5" cols="20" wrap="off" autocomplete="off"></textarea>
     </div>
     <div class="block">
       <label for="comments">コメント内容：</label>
-      <textarea id="comments" rows="5" cols="20" wrap="off" autocomplete="off">のだ&NewLine;なのだ&NewLine;ちがうのだ&NewLine;かもなのだ</textarea>
+      <textarea id="comments" rows="5" cols="20" wrap="off" autocomplete="off"></textarea>
     </div>
   </div>
   <form>
-    <fieldset class="actionModeSelection">
+    <fieldset id="actionModeSelections">
       <legend>動作モード</legend>
       <span class="actionModeSelection">
-      <input type="radio" id="actionModeSingle" name="actionMode" value="single" checked />
+      <input type="radio" id="actionModeSingle" name="actionMode" value="single" />
       <label for="actionModeSingle">先頭</label>
       </span>
       <span class="actionModeSelection">
@@ -68,9 +68,12 @@
     </div>
     <div>
     <label for="interval">送信間隔：</label>
-    <input id="interval" type="range" min="100" max="2000" value="1000" step="50">
+    <input id="interval" type="range" min="100" max="2000" step="50">
     <span id="intervalValue">1000</span> ms
     </div>
+  </div>
+  <div class="row">
+    <span id="hammer">🔨</label>
   </div>
 </div>
 <script>
@@ -179,6 +182,83 @@ function sendloop(timestamp) {
   
   requestAnimationFrame(sendloop);
 }
+
+const SAVE_KEYS = {
+  usernames: {
+    key: "usernames",
+    init: "ずんだもん\nあんこもん\nきなこもん\nそーだもん",
+    description: "ユーザ名"
+  },
+  comments: {
+    key: "comments",
+    init: "のだ\nなのだ\nちがうのだ\nかもなのだ",
+    description: "コメント"
+  },
+  actionMode: {
+    key: "actionMode",
+    init: "random",
+    description: "動作モード"
+  },
+  interval: {
+    key: "interval",
+    init: "1000",
+    description: "連打用インターバル[ms]"
+  }
+}
+
+function onload() {
+  // 値を復帰＆変更時のリスナー埋め込み
+  const initializeStorage = (identifier) => {
+    if(localStorage.getItem(identifier.key) === null) {
+      console.log(identifier.key + " initialized to :" + identifier.init);
+      localStorage.setItem(identifier.key, identifier.init);
+    }
+    //console.log(identifier.key + " : " + identifier.init );
+  };
+
+  initializeStorage(SAVE_KEYS.comments);
+  initializeStorage(SAVE_KEYS.usernames);
+  initializeStorage(SAVE_KEYS.actionMode);
+  initializeStorage(SAVE_KEYS.interval);
+
+  const commentsArea = document.getElementById("comments");
+  commentsArea.value = localStorage.getItem(SAVE_KEYS.comments.key);
+  commentsArea.addEventListener("input", () => {
+    localStorage.setItem(SAVE_KEYS.comments.key, commentsArea.value);
+  });
+
+  const usernamesArea = document.getElementById("usernames");
+  usernamesArea.value = localStorage.getItem(SAVE_KEYS.usernames.key);
+  usernamesArea.addEventListener("input", () => {
+    localStorage.setItem(SAVE_KEYS.usernames.key, usernamesArea.value);
+  });
+
+  const savedValue = localStorage.getItem(SAVE_KEYS.actionMode.key);
+  console.log(savedValue);
+  document.querySelector(`input[name="actionMode"][value="${savedValue}"]`).checked = true;
+  document.getElementById("actionModeSelections").addEventListener("change", (e) => {
+    // console.log(e.target.value);
+    localStorage.setItem(SAVE_KEYS.actionMode.key, e.target.value);
+  });
+
+  const intervalSlider = document.getElementById("interval");
+  intervalSlider.value = localStorage.getItem(SAVE_KEYS.interval.key);
+  intervalSlider.dispatchEvent(new Event("input"));  // spanに反映さす
+  intervalSlider.addEventListener("change", e => {
+    // console.log(e.target.value);
+    localStorage.setItem(SAVE_KEYS.interval.key, e.target.value);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", onload);
+
+function deleteStorages() {
+  if(window.confirm("ページを初期状態に戻しますか？")) {
+    localStorage.clear();
+    window.location.reload();
+  }
+}
+document.getElementById("hammer").addEventListener("click", deleteStorages);
 </script>
 
 </body>
