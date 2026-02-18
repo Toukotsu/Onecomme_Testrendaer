@@ -11,6 +11,11 @@
   .block { display: flex; flex-direction: column; flex: 1; }
   textarea { width: 100%; box-sizing: border-box; }
 
+  .actionModeSelection {
+    span { margin-right: 5px; };
+    input { margin-right: -2px; };
+  }
+
   @media (max-width: 600px) {
     .container {
       flex-direction: column;
@@ -23,14 +28,31 @@
 
 <div class="container">
   <div class="block">
-    <label for="username">ユーザ名：</label>
-    <textarea id="username" rows="5" cols="20" wrap="off" autocomplete="off">ずんだもん&NewLine;あんこもん&NewLine;かるだもん&NewLine;そーだもん</textarea>
+    <label for="usernames">ユーザ名：</label>
+    <textarea id="usernames" rows="5" cols="20" wrap="off" autocomplete="off">ずんだもん&NewLine;あんこもん&NewLine;かるだもん&NewLine;そーだもん</textarea>
   </div>
   <div class="block">
     <label for="comments">コメント内容：</label>
     <textarea id="comments" rows="5" cols="20" wrap="off" autocomplete="off">のだ&NewLine;なのだ&NewLine;ちがうのだ&NewLine;かもなのだ</textarea>
   </div>
 </div>
+<form>
+  <fieldset class="actionModeSelection">
+    <legend>動作モード</legend>
+    <span class="actionModeSelection">
+    <input type="radio" id="actionModeSingle" name="actionMode" value="single" checked />
+    <label for="actionModeSingle">先頭</label>
+    </span>
+    <span class="actionModeSelection">
+    <input type="radio" id="actionModeList" name="actionMode" value="list" />
+    <label for="actionModeList">リスト順</label>
+    </span>
+    <span class="actionModeSelection">
+    <input type="radio" id="actionModeRandom" name="actionMode" value="random" />
+    <label for="actionModeRandom">ランダム</label>
+    </span>
+  </fieldset>
+</form>
 
 <div class="row">
   <button id="sendSingle">単発送信</button>
@@ -54,14 +76,42 @@ document.getElementById("interval").addEventListener("input", e => {
   document.getElementById("intervalValue").textContent = e.target.value;
 });
 
-function getOneLine(text) {
-  const lines = text.split("\n").map(s=>s.trim()).filter(s=>s.length>0);
-  return lines[Math.floor(Math.random() * lines.length)];  // textが空だとわんコメ側で設定したデフォ値になるようだ
-}
+let selectedMode = "single";
+document.querySelector(".actionModeSelection").addEventListener("change", e => {
+  selectedMode = e.target.value;
+  // console.log(selectedMode);
+});
+
+let listIndex = 0;
 
 function sendOne() {
-  const username = getOneLine(document.getElementById("username").value);
-  const comment = getOneLine(document.getElementById("comments").value);
+  const getLines = (text) => {
+    const lines = text.split("\n").map(s=>s.trim()).filter(s=>s.length>0);
+    return lines;
+  }
+  const usernames = getLines(document.getElementById("usernames").value);
+  const comments = getLines(document.getElementById("comments").value);
+
+  let username = "";
+  let comment = "";
+  switch (selectedMode) {
+    case "list":
+      username = usernames[listIndex % usernames.length];
+      comment = comments[listIndex % comments.length];
+      listIndex++;
+      if (listIndex > 1e10) listIndex = 0; // 一応あふれないように
+      break;
+    case "random":
+      username = usernames[Math.floor(Math.random() * usernames.length)];
+      comment = comments[Math.floor(Math.random() * comments.length)];
+      break;
+    case "single":
+    default:
+      username = usernames[0];
+      comment = comments[0];
+      break;
+  }
+  // 値が空だとわんコメ側で設定したデフォ値になるようだ
 
   fetch("http://localhost:11180/api/comments/test", {
     method: "POST",
@@ -112,6 +162,7 @@ function resetProgress() {
   lastTime = 0;
   running = false;
   progress = 0.0;
+  listIndex = 0;
   updateGauge();
 }
 
