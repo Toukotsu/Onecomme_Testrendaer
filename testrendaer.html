@@ -11,6 +11,9 @@
   .datacontainer { display: flex; column-gap: 20px; }
   .block { display: flex; flex-direction: column; flex: 1; }
   textarea { width: 100%; box-sizing: border-box; resize: vertical; }
+  .commentOptions { display: flex; flex-wrap: wrap; gap: 1rem; }
+  .commentOptions .commentOptionCols { flex: 1 1 calc(50% - 1rem); min-width: 250px; display: flex; align-items: center; gap: 0.5rem; }
+  .commentOptionText { min-width: 75px; text-align: right; }
 
   .actionModeSelection {
     span { margin-right: 5px; };
@@ -21,6 +24,10 @@
     .datacontainer {
       flex-direction: column;
     }
+  }
+
+  .hammer {
+    cursor: pointer;
   }
 </style>
 </head>
@@ -54,6 +61,30 @@
       <label for="actionModeRandom">ランダム</label>
       </span>
     </fieldset>
+    <fieldset>
+      <legend>コメントオプション</legend>
+      <div class="commentOptions">
+        <span class="commentOptionCols">
+          <label for="commentOptionNewRate" class="commentOptionText">New率</label>
+          <input type="range" id="commentOptionNewRate" min="0" max="100" step="1">
+          <span id="commentOptionNewRateText">100%</span>
+        </span>
+        <span class="commentOptionCols">
+          <label for="commentOptionRepeaterRate" class="commentOptionText">リピ率</label>
+          <input type="range" id="commentOptionRepeaterRate" min="0" max="100" step="1">
+          <span id="commentOptionRepeaterRateText">100%</span>
+        </span>
+        <span class="commentOptionCols">
+          <label for="commentOptionMembershipRate" class="commentOptionText">メンシ率</label>
+          <input type="range" id="commentOptionMembershipRate" min="0" max="100" step="1">
+          <span id="commentOptionMembershipRateText">100%</span>
+      </span>
+        <span class="commentOptionCols">
+          <label for="commentOptionSpeech" class="commentOptionText">読み上げ</label>
+          <input type="checkbox" id="commentOptionSpeech" />
+        </span>
+      </div>
+    </fieldset>
   </form>
 
   <div class="row">
@@ -73,13 +104,19 @@
     </div>
   </div>
   <div class="row">
-    <span id="hammer">🔨</label>
+    <span id="hammer" class="hammer">🔨</span>
   </div>
 </div>
 <script>
-document.getElementById("interval").addEventListener("input", e => {
-  document.getElementById("intervalValue").textContent = e.target.value;
-});
+function addRangeValueApplier(rangeId, labelId, formatter) {
+  document.getElementById(rangeId).addEventListener("input", e => {
+    document.getElementById(labelId).textContent = formatter(e.target.value);
+  });
+}
+addRangeValueApplier("commentOptionNewRate", "commentOptionNewRateText", x => x + "%");
+addRangeValueApplier("commentOptionRepeaterRate", "commentOptionRepeaterRateText", x => x + "%");
+addRangeValueApplier("commentOptionMembershipRate", "commentOptionMembershipRateText", x => x + "%");
+addRangeValueApplier("interval", "intervalValue", x => x);
 
 let listIndex = 0;
 
@@ -113,6 +150,11 @@ function sendOne() {
   }
   // 値が空だとわんコメ側で設定したデフォ値になるようだ
 
+  const getBoolFromSliderValueRate = (elementId) => {
+    const rate = document.getElementById(elementId).value;  // 0 - 100
+    return Math.random() * 100 < rate;
+  };
+
   fetch("http://localhost:11180/api/comments/test", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -122,10 +164,10 @@ function sendOne() {
       "unit": "",
       "price": 0,
       "giftType": "none",
-      "newComment": false,
-      "repeater": false,
-      "subscribe": false,
-      "speech": false,
+      "newComment": getBoolFromSliderValueRate("commentOptionNewRate"),
+      "repeater": getBoolFromSliderValueRate("commentOptionRepeaterRate"),
+      "subscribe": getBoolFromSliderValueRate("commentOptionMembershipRate"),
+      "speech": document.getElementById("commentOptionSpeech").checked,
       "username": username,
       "comment": comment
     })
@@ -203,6 +245,26 @@ const SAVE_KEYS = {
     key: "interval",
     init: "1000",
     description: "連打用インターバル[ms]"
+  },
+  newRate: {
+    key: "commentOptionNewRate",
+    init: "0",
+    description: "Newコメント率"
+  },
+  repeater: {
+    key: "commentOptionRepeaterRate",
+    init: "0",
+    description: "再訪率"
+  },
+  membership: {
+    key: "commentOptionMembershipRate",
+    init: "0",
+    description: "メンバーシップ率"
+  },
+  speech: {
+    key: "commentOptionSpeech",
+    init: "false",
+    description: "読み上げ"
   }
 }
 
@@ -234,20 +296,33 @@ function onload() {
   });
 
   const savedValue = localStorage.getItem(SAVE_KEYS.actionMode.key);
-  console.log(savedValue);
+  // console.log(savedValue);
   document.querySelector(`input[name="actionMode"][value="${savedValue}"]`).checked = true;
   document.getElementById("actionModeSelections").addEventListener("change", (e) => {
     // console.log(e.target.value);
     localStorage.setItem(SAVE_KEYS.actionMode.key, e.target.value);
   });
 
-  const intervalSlider = document.getElementById("interval");
-  intervalSlider.value = localStorage.getItem(SAVE_KEYS.interval.key);
-  intervalSlider.dispatchEvent(new Event("input"));  // spanに反映さす
-  intervalSlider.addEventListener("change", e => {
-    // console.log(e.target.value);
-    localStorage.setItem(SAVE_KEYS.interval.key, e.target.value);
-  });
+  const sliderUpdater = (key) => {
+    const slider = document.getElementById(key);
+    slider.value = Number(localStorage.getItem(key));
+    slider.dispatchEvent(new Event("input"));  // spanに反映さす
+    slider.addEventListener("change", e => {
+      localStorage.setItem(key, e.target.value.toString());
+    });
+  };
+
+  sliderUpdater(SAVE_KEYS.interval.key);
+  
+  sliderUpdater(SAVE_KEYS.newRate.key);
+  sliderUpdater(SAVE_KEYS.repeater.key);
+  sliderUpdater(SAVE_KEYS.membership.key);
+
+  const speechCheckbox = document.getElementById(SAVE_KEYS.speech.key);
+  speechCheckbox.checked = localStorage.getItem(SAVE_KEYS.speech.key) === "true";
+  speechCheckbox.addEventListener("input", (e) => {
+    localStorage.setItem(SAVE_KEYS.speech.key, e.target.checked.toString())
+  })
 }
 
 document.addEventListener("DOMContentLoaded", onload);
