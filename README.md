@@ -19,7 +19,7 @@
 
 
 ## ダウンロード方法
-最新版は→のReleasesからzipをダウンロードし、任意の場所に解凍してください
+最新版はReleasesからzipをダウンロードし、任意の場所に解凍してください
 https://github.com/Toukotsu/Onecomme_Testrendaer/releases
 
 
