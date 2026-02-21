@@ -1,5 +1,5 @@
 # onecomme_testrendaer
-![コメントを送るだけのツールであります](./images/overview.gif)  
+![コメントを送るだけのツールであります](./images/overview0.1.1.gif)  
 わんコメへのテストコメントを連打するから`renda`+`er`
 
 ## 概要
