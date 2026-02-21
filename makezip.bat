@@ -4,7 +4,8 @@ setlocal
 set /p VERSION=<VERSION
 
 set OUTDIR=.\out
-set ZIPFILE=%OUTDIR%\release-%VERSION%.zip
+set APPNAME=OnecommeTestRendaer
+set ZIPFILE=%OUTDIR%\%APPNAME%_%VERSION%.zip
 
 if exist %ZIPFILE% del %ZIPFILE%
 
