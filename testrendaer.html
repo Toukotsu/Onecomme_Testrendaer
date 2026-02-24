@@ -7,6 +7,9 @@
   body { font-family: sans-serif; padding: 20px; }
   .row { margin-top: 10px; }
 
+  .titleblock { display: flex; flex-direction:column; flex: 1; }
+  .updatecheck { font-size: 0.8rem; }
+
   .container { max-width: 600px; margin: 0 auto; padding: 0 1rem; }
   .datacontainer { display: flex; column-gap: 20px; }
   .block { display: flex; flex-direction: column; flex: 1; }
@@ -34,6 +37,7 @@
 <body>
 <div class="container">
   <h2>わんコメ テストコメント連打er</h2>
+  <span id="updatecheck"></span>
 
   <div class="datacontainer">
     <div class="block">
@@ -224,6 +228,32 @@ function sendloop(timestamp) {
   
   requestAnimationFrame(sendloop);
 }
+
+async function runUpdateCheck() {
+  const rootspan = document.getElementById("updatecheck");
+  rootspan.innerHTML = `<span class="updatecheck">githubチェック中...</span>`;
+
+  async function checkLatestReleaseVer() {
+    const res = await fetch("https://api.github.com/repos/Toukotsu/Onecomme_Testrendaer/releases/latest");
+    const data = await res.json();
+    return data.tag_name;
+  }
+
+  async function getCurrentVer() {
+    // read from file
+    return "v0.1.0";
+  }
+
+  const githubVer = await checkLatestReleaseVer();
+  const currentVer = await getCurrentVer();
+  if( githubVer != currentVer) {
+    rootspan.innerHTML = `<span class="updatecheck"><a href="https://github.com/Toukotsu/Onecomme_Testrendaer/releases">githubで${githubVer}配信中</a></span>`;
+  } else {
+    rootspan.innerHTML = `<span class="updatecheck">${currentVer}</span>`;
+  }
+}
+
+runUpdateCheck();
 
 const SAVE_KEYS = {
   usernames: {
